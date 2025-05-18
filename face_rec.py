@@ -24,7 +24,12 @@ portnumber = 13223
 password = 'Vongola99'
 
 try:
-    r = redis.StrictRedis(host=hostname, port=portnumber, password=password)
+    r = redis.StrictRedis(
+        host=hostname,
+        port=portnumber,
+        password=password,
+        ssl=True  # ✅ REQUIRED for Redis Cloud!
+    )
     r.ping()
     print("✅ Successfully connected to Redis!")
 except redis.ConnectionError as e:
