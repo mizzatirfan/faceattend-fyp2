@@ -81,6 +81,9 @@ with tab3:
     date_name_role_zip['Duration_seconds'] = date_name_role_zip['Duration'].dt.total_seconds().fillna(0).astype(int)
     date_name_role_zip['Duration_hours'] = date_name_role_zip['Duration_seconds'] / 3600
 
+    #date_name_rol_zip_df['Duration_seconds'] = date_name_role_zip['Duration'].dt.seconds
+    date_name_rol_zip_df['Duration_hours'] = date_name_role_zip['Duration_seconds'] / 3600
+
     def status_marker(x):
 
         if pd.Series(x).isnull().all():
@@ -99,6 +102,7 @@ with tab3:
             return 'Present'
 
     date_name_role_zip['Status'] = date_name_role_zip['Duration_hours'].apply(status_marker)
+    date_name_rol_zip_df['Status'] = date_name_role_zip['Duration_hours'].apply(status_marker)
     
     st.dataframe(date_name_role_zip)
 
@@ -128,19 +132,54 @@ with tab3:
         duration_in = st.slider('filter the duratin in hours greater than', 0, 15, 6)
 
         #status
-        status_list = date_name_role_zip['Status'].dropna().unique().tolist()
+        status_list = date_name_rol_zip_df['Status'].dropna().unique().tolist()
         status_in = st.multiselect('Select the status', ['All']+status_list)
 
         if st.button('Submit'):
             date_name_rol_zip_df['Date'] = date_name_rol_zip_df['Date'].astype(str)
 
-        #filter date
-        filter_df = date_name_rol_zip_df.query(f'Date =="{date_in}"')
+            #filter date
+            filter_df = date_name_rol_zip_df.query(f'Date =="{date_in}"')
+        
+            #filter name
+            if name_in == 'ALL':
+                filter_df = filter_df
+            elif name_in != 'ALL':
+                filter_df = filter_df.query(f'Name =="{name_in}"')
+            else:
+                filter_df = filter_df
+            
+            #filter role
+            if role_in == 'ALL':
+                filter_df = filter_df
+            elif role_in != 'All':
+                filter_df = filter_df.query(f'Role =="{role_in}"')
+            else:
+                filter_df = filter_df
+            
 
-        #filter name
-        if name_in != 'ALL':
-            filter_df = filter_df.query(f'Name =="{name_in}"')
+            #filter duration
+            if duration_in > 0:
+                filter_df = filter_df.query(f'Duration_hours > {duration_in}')
+            
+            #filter status
+            
+            if 'ALL' in status_in:
+                filter_df = filter_df
 
-        #filter role
-        if duration_in >0:
-            filter_df = filter_df.query(f'Role =="{role_in}"')
+            elif len(status_in) > 0:
+                # Create temp boolean column
+                filter_df['Status_condition'] = filter_df['Status'].apply(lambda x: True if x in status_in else False)
+
+                # Filter by that column (case-sensitive!)
+                filter_df = filter_df[filter_df['Status_condition'] == True]
+
+                # Clean up
+                filter_df.drop(columns='Status_condition', inplace=True)
+
+            
+            else:
+                filter_df = filter_df
+            
+
+            st.dataframe(filter_df)
