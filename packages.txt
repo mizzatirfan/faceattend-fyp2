@@ -1,2 +1,3 @@
-libgl1-mesa-glx
-libglib2.0-0
+version https://git-lfs.github.com/spec/v1
+oid sha256:58a56a7ec38c33053a0ddaa5dc5dbb355e67c173b225ea0063081b0d48a31a0f
+size 50
